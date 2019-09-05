@@ -75,7 +75,7 @@
 				v2f o;
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.vertex /= o.vertex.w;
-				o.vertex.xy = o.vertex * 0.5 + float2(0.5, -0.5);
+				o.vertex.xy = o.vertex * 0.5 + float2(0.5, 0.5);
 				o.uv = v.uv;
 				return o;
 			}
