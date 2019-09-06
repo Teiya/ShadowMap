@@ -48,10 +48,8 @@ Shader "Shadow/BaseShadowMapShader"
 			{
 				v2f o;
 				o.vertex = UnityObjectToClipPos(v.vertex);
+				o.worldPos = mul(UNITY_MATRIX_M, v.vertex);
 
-				float4 worldPos = mul(UNITY_MATRIX_M, v.vertex);
-				o.worldPos.xyz = worldPos.xyz ;
-				o.worldPos.w = 1 ;
 				return o;
 			}
 			
@@ -60,17 +58,10 @@ Shader "Shadow/BaseShadowMapShader"
 				// convert to light camera space
 				fixed4 lightClipPos = mul(_LightProjection , i.worldPos);
 			    lightClipPos.xyz = lightClipPos.xyz / lightClipPos.w ;
-				float3 pos = lightClipPos * 0.5 + 0.5 ;
+				float2 shadowUV = lightClipPos.xy * float2(0.5, -0.5) + float2(0.5, 0.5);
 
-
-			//	return fixed4(lightClipPos.z,lightClipPos.z,lightClipPos.z,1) * 10;
-
-//    		    float3 worldPos2 = pos * 0.5 + 0.5;
-//				return fixed4(worldPos2,1);
-//		
 //				//get depth
-				fixed4 depthRGBA = tex2D(_LightDepthTex,saturate(pos.xy));
-
+				fixed4 depthRGBA = tex2D(_LightDepthTex, shadowUV);
 				float depth = DecodeFloatRGBA(depthRGBA);
 
 				//return fixed4(depth,depth,depth,1) * 10;

@@ -14,25 +14,21 @@ public class BaseShadowMap : MonoBehaviour
 
 	void Awake()
 	{
-		LightCamera = gameObject.GetComponentInChildren<Camera> ();
 	}
 
 	void Start () 
 	{
-		Matrix4x4 lightProjecionMatrix = GetLightProjectMatrix (LightCamera);
-		Shader.SetGlobalMatrix ("_LightProjection", lightProjecionMatrix);
+        //Light light = GetComponent<Light>();
+        //LightCamera = GetComponentInChildren<Camera>();
+        //Matrix4x4 a = Utils.CalcBaseShadowMapMatrix(light, LightCamera, Camera.main, false);
+        //Matrix4x4 b = GetLightProjectMatrix(LightCamera);
+        CaptureDepth cd = GetComponentInChildren<CaptureDepth>();
+        Shader.SetGlobalMatrix ("_LightProjection", cd.lightProjecionMatrix);
 	}
 
 
 	Matrix4x4 GetLightProjectMatrix(Camera lightCam)
 	{
-        Matrix4x4 posToUV = new Matrix4x4();
-        posToUV.SetRow(0, new Vector4(0.5f,    0,    0, 0.5f));
-        posToUV.SetRow(1, new Vector4(   0, 0.5f,    0, 0.5f));
-        posToUV.SetRow(2, new Vector4(   0,    0,    1,    0));
-        posToUV.SetRow(3, new Vector4(   0,    0,    0,    1));
-
-
         Matrix4x4 worldToView = lightCam.worldToCameraMatrix;
         Matrix4x4 projection  = GL.GetGPUProjectionMatrix(lightCam.projectionMatrix, false);
 

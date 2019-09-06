@@ -44,8 +44,6 @@ Shader "Shadow/TestShdowMap"
             	//return fixed4(1,1,1,1) ;
                 float4 depthColor = tex2D(_LightDepthTex, o.uv);
 
-            	//return depthColor;
-
                 float  depth = DecodeFloatRGBA(depthColor) ;
                 depth = depth * 0.5f + 0.5f ;
                 return fixed4(depth,depth,depth,1);

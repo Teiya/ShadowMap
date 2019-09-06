@@ -57,14 +57,14 @@ public class Utils
 		}
 	}
 
-	static public Matrix4x4 CalcBaseShadowMapMatrix(Light light, Camera lightCamera, Camera mainCamera)
+	static public Matrix4x4 CalcBaseShadowMapMatrix(Light light, Camera lightCamera, Camera mainCamera, bool targetTexture = true)
 	{
 		//算出视锥体的5个顶点
 		Vector3[] corners = Utils.GetCorners(mainCamera);
 		//转换到lightview空间
 		Vector3 to = light.transform.position + light.transform.forward;
-		Matrix4x4 mat = Matrix4x4.LookAt(light.transform.position, to, light.transform.up);
-		for(int i = 0; i < corners.Length; i++)
+		Matrix4x4 mat = lightCamera.worldToCameraMatrix;//Matrix4x4.LookAt(light.transform.position, to, light.transform.up);
+        for (int i = 0; i < corners.Length; i++)
 		{
 			corners[i] = mat.MultiplyPoint(corners[i]);
 		}
@@ -76,18 +76,94 @@ public class Utils
 		center = mat.inverse.MultiplyPoint(center);
 		light.transform.position = center;
 		Vector3 boxSize = max - min;
-		Debug.Log("center========="+center);
 
-		Vector3 lightTo = center + light.transform.forward;
-		Matrix4x4 lightView = Matrix4x4.LookAt(center, lightTo, light.transform.up);
+        Vector3 lightDir = light.transform.forward;
+        Vector3 lightTo = center + lightDir;
+        Vector3 viewDir = Camera.main.transform.forward;
+        Vector3 temp = Vector3.Cross(viewDir, lightDir);
+        Vector3 lightUp = Vector3.Cross(temp, lightDir);
+        lightUp.Normalize();
+        Matrix4x4 lightView = CreateLookAt(center, lightTo, light.transform.up);
 		Matrix4x4 lightProj = Matrix4x4.Ortho(-boxSize.x*0.5f, boxSize.x*0.5f, boxSize.y*0.5f, -boxSize.y*0.5f, 0.0f, 300.0f);
 
 		lightCamera.orthographicSize = boxSize.x/2.0f;
 		lightCamera.aspect = boxSize.x/boxSize.y;
         Matrix4x4 worldToView = lightCamera.worldToCameraMatrix;
-        Matrix4x4 projection  = GL.GetGPUProjectionMatrix(lightCamera.projectionMatrix, false);
+        Debug.Log(lightView);
+        Debug.Log(worldToView);
+        Matrix4x4 projection  = GL.GetGPUProjectionMatrix(lightCamera.projectionMatrix, targetTexture);
 
- 		return   projection * worldToView;
+        return projection * lightView;
 	}
 
+    //static public Matrix4x4 CalcPersPectiveShadowMapMatrix(Light light, Camera lightCamera, Camera mainCamera, bool targetTexture = true)
+    //{
+    //    //算出视锥体的5个顶点
+    //    Vector3[] corners = Utils.GetCorners(mainCamera);
+    //    //转换到lightview空间
+    //    Vector3 to = light.transform.position + light.transform.forward;
+    //    Matrix4x4 mat = lightCamera.worldToCameraMatrix;//Matrix4x4.LookAt(light.transform.position, to, light.transform.up);
+    //    for (int i = 0; i < corners.Length; i++)
+    //    {
+    //        corners[i] = mat.MultiplyPoint(corners[i]);
+    //    }
+    //    Vector3 max = new Vector3();
+    //    Vector3 min = new Vector3();
+    //    Utils.GetAABB(corners, out min, out max);
+    //    Vector3 center = (max + min) * 0.5f;
+    //    center.z = max.z;
+    //    center = mat.inverse.MultiplyPoint(center);
+    //    light.transform.position = center;
+    //    Vector3 boxSize = max - min;
+
+    //    Vector3 lightTo = center + light.transform.forward;
+    //    Matrix4x4 lightView = CreateLookAt(center, lightTo, light.transform.up);
+    //    Matrix4x4 lightProj = Matrix4x4.Ortho(-boxSize.x * 0.5f, boxSize.x * 0.5f, boxSize.y * 0.5f, -boxSize.y * 0.5f, 0.0f, 300.0f);
+
+    //    lightCamera.orthographicSize = boxSize.x / 2.0f;
+    //    lightCamera.aspect = boxSize.x / boxSize.y;
+    //    //Matrix4x4 worldToView = lightCamera.worldToCameraMatrix;
+    //    Matrix4x4 projection = GL.GetGPUProjectionMatrix(lightCamera.projectionMatrix, targetTexture);
+
+    //    Vector3 lightDir = light.transform.forward;
+    //    lightDir.Normalize();
+
+
+    //    return projection * lightView;
+    //}
+
+    public static Matrix4x4 CreateLookAt(Vector3 cameraPosition, Vector3 cameraTarget, Vector3 cameraUpVector)
+    {
+        Matrix4x4 result;
+        Vector3 zaxis = cameraPosition - cameraTarget;
+        zaxis.Normalize();
+
+        Vector3 xaxis = Vector3.Cross(cameraUpVector, zaxis);
+        xaxis.Normalize();
+
+        Vector3 yaxis = Vector3.Cross(zaxis, xaxis);
+        yaxis.Normalize();
+
+        result.m00 = xaxis.x;
+        result.m10 = yaxis.x;
+        result.m20 = zaxis.x;
+        result.m30 = 0.0f;
+
+        result.m01 = xaxis.y;
+        result.m11 = yaxis.y;
+        result.m21 = zaxis.y;
+        result.m31 = 0.0f;
+
+        result.m02 = xaxis.z;
+        result.m12 = yaxis.z;
+        result.m22 = zaxis.z;
+        result.m32 = 0.0f;
+
+        result.m03 = -Vector3.Dot(xaxis, cameraPosition);
+        result.m13 = -Vector3.Dot(yaxis, cameraPosition);
+        result.m23 = -Vector3.Dot(zaxis, cameraPosition);
+        result.m33 = 1.0f;
+
+        return result;
+    }
 }
