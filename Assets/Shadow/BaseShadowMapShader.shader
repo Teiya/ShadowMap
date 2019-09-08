@@ -30,7 +30,7 @@ Shader "Shadow/BaseShadowMapShader"
 
             sampler2D _LightDepthTex;
 
-            float4x4 _LightProjection;
+            float4x4 _LightViewProjMatrix;
 
 			struct appdata
 			{
@@ -56,15 +56,13 @@ Shader "Shadow/BaseShadowMapShader"
 			fixed4 object_frag (v2f i) : SV_Target
 			{
 				// convert to light camera space
-				fixed4 lightClipPos = mul(_LightProjection , i.worldPos);
+				fixed4 lightClipPos = mul(_LightViewProjMatrix , i.worldPos);
 			    lightClipPos.xyz = lightClipPos.xyz / lightClipPos.w ;
 				float2 shadowUV = lightClipPos.xy * float2(0.5, -0.5) + float2(0.5, 0.5);
 
 //				//get depth
 				fixed4 depthRGBA = tex2D(_LightDepthTex, shadowUV);
 				float depth = DecodeFloatRGBA(depthRGBA);
-
-				//return fixed4(depth,depth,depth,1) * 10;
 
 
 				if(lightClipPos.z + 0.005 < depth  )
@@ -75,7 +73,6 @@ Shader "Shadow/BaseShadowMapShader"
 				{
 					return fixed4(0.5,0.5,0.5,1);
 				}
-				//return fixed4(depth,depth,depth,1);
 			}
 			ENDCG
 		}

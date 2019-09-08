@@ -11,7 +11,6 @@ public class RenderShadowMap : MonoBehaviour {
 	{
 		shadowMapMaterial = new Material(shadowMapshader);
 		shadowMapMaterial.SetTexture("_LightDepthTex", depthTexture);
-		//Shader.SetGlobalTexture ("_LightDepthTex", depthTexture);
 	}
 
 	// Use this for initialization

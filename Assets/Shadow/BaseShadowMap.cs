@@ -9,30 +9,10 @@ public class BaseShadowMap : MonoBehaviour
 	public Vector3[] Corners;
 
 
-
-	
-
-	void Awake()
+	void Update()
 	{
-	}
-
-	void Start () 
-	{
-        //Light light = GetComponent<Light>();
-        //LightCamera = GetComponentInChildren<Camera>();
-        //Matrix4x4 a = Utils.CalcBaseShadowMapMatrix(light, LightCamera, Camera.main, false);
-        //Matrix4x4 b = GetLightProjectMatrix(LightCamera);
-        CaptureDepth cd = GetComponentInChildren<CaptureDepth>();
-        Shader.SetGlobalMatrix ("_LightProjection", cd.lightProjecionMatrix);
-	}
-
-
-	Matrix4x4 GetLightProjectMatrix(Camera lightCam)
-	{
-        Matrix4x4 worldToView = lightCam.worldToCameraMatrix;
-        Matrix4x4 projection  = GL.GetGPUProjectionMatrix(lightCam.projectionMatrix, false);
-
- 		return   projection * worldToView;
+		CaptureDepth cd = GetComponentInChildren<CaptureDepth>();
+        Shader.SetGlobalMatrix ("_LightViewProjMatrix", cd.lightViewProjMatrix);
 	}
 
 }
